@@ -388,8 +388,3 @@ server.listen(PORT, () => {
     console.log(` Local URL: http://localhost:${PORT}`);
     console.log(`====================================================`);
 });
-app.use(express.static(__dirname));
-
-app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/index.html');
-});
