@@ -1,0 +1,18 @@
+{
+  "name": "smartboard-screen-share",
+  "version": "1.0.0",
+  "description": "Noutbuk va Elektron Doska o'rtasida masofaviy ekran va slayd uzatish platformasi",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "webrtc",
+    "smartboard",
+    "screenshare",
+    "presentation",
+    "uzbekistan"
+  ],
+  "author": "",
+  "license": "MIT"
+}

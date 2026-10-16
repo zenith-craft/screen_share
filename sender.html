@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartBoard Connect - Uzatuvchi</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="i18n.js"></script>
+</head>
+<body>
+    <!-- Language Switcher Bar -->
+    <div class="lang-switcher">
+        <button class="lang-btn" onclick="switchLang('uz')" id="lang_uz">UZ</button>
+        <button class="lang-btn" onclick="switchLang('en')" id="lang_en">EN</button>
+        <button class="lang-btn" onclick="switchLang('ru')" id="lang_ru">RU</button>
+    </div>
+
+    <!-- Quick Toast Notification when Mode Changes -->
+    <div id="winPToast" style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(15, 23, 42, 0.95); color: #34d399; border: 1px solid var(--accent); padding: 12px 24px; border-radius: 30px; font-weight: bold; font-size: 0.95rem; box-shadow: 0 10px 25px rgba(0,0,0,0.6); z-index: 2500; display: none; backdrop-filter: blur(8px);">
+        ⚡ Proyektor Rejimi: <span id="winPToastText">Duplicate</span>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <a href="index.html" style="color: var(--primary); text-decoration: none; font-size: 0.9rem; font-weight: 600;" data-i18n="back_home">← Bosh sahifaga qaytish</a>
+            <h1 style="margin-top: 10px;" data-i18n="sender_page_title">Uzatuvchi (Noutbuk)</h1>
+            <p data-i18n="sender_page_sub">Elektron doskaga ulaning va ekraningizni masofaviy uzating</p>
+        </div>
+
+        <!-- Connection Box -->
+        <div id="connectionBox" class="card" style="max-width: 500px; margin: 0 auto 30px auto;">
+            <h2 data-i18n="connect_box_title">Doskaga Ulanish</h2>
+            <p data-i18n="connect_box_desc">Elektron doska ekranida chiqqan 6 xonali ulanish parolini kiriting:</p>
+
+            <input type="text" id="joinCode" class="input-code" placeholder="XXXXXX" data-i18n-placeholder="code_placeholder" maxlength="6" autocomplete="off" spellcheck="false">
+            
+            <button id="btnJoin" class="btn btn-primary" data-i18n="btn_connect">
+                🔗 Ulanish
+            </button>
+
+            <div id="connectStatus" style="margin-top: 15px; font-weight: 600; font-size: 0.95rem;"></div>
+        </div>
+
+        <!-- Active Control Panel (Hidden until paired) -->
+        <div id="controlPanel" style="display: none;">
+
+            <!-- Status Banner -->
+            <div style="background: rgba(16, 185, 129, 0.15); border: 1px solid var(--accent); border-radius: 12px; padding: 16px; text-align: center; margin-bottom: 20px;">
+                <span style="font-weight: 700; color: #34d399;" data-i18n="status_connected_banner">✅ Elektron doskaga muvaffaqiyatli ulandi!</span>
+                <span id="activeRoomCode" style="color: #94a3b8; margin-left: 10px; font-family: monospace;"></span>
+            </div>
+
+            <!-- Main Streaming Panel -->
+            <div class="view-panel" style="text-align: center; padding: 24px;">
+                
+                <!-- Single 1-Click START / STOP Button -->
+                <div style="margin-bottom: 20px;">
+                    <button id="btnStartStream" class="btn btn-accent" style="font-size: 1.5rem; padding: 20px 48px; max-width: 320px; width: 100%; margin: 0 auto; border-radius: 16px;">
+                        <span data-i18n="btn_start_stream">▶️ START</span>
+                    </button>
+
+                    <button id="btnStopStream" class="btn btn-secondary" style="font-size: 1.1rem; padding: 16px 32px; max-width: 240px; width: 100%; margin: 0 auto; display: none;" data-i18n="btn_stop_stream">
+                        ⏹️ STOP
+                    </button>
+                </div>
+
+                <div id="streamStatusIndicator" style="margin-bottom: 16px; display: none;">
+                    <span style="color: var(--accent); font-weight: bold; font-size: 1.05rem;" data-i18n="stream_active">🟢 Jonli translyatsiya ketmoqda (Ultra-HD 60 FPS)...</span>
+                </div>
+
+                <!-- AUTHENTIC WINDOWS 11 "PROJECT" (WIN + P) FLYOUT WIDGET -->
+                <div class="win11-project-container">
+                    <div class="win11-project-flyout">
+                        
+                        <!-- Header -->
+                        <div class="win11-project-header">
+                            <div class="win11-project-title-box">
+                                <span class="win11-back-arrow">←</span>
+                                <span class="win11-project-title" data-i18n="project_title">Project</span>
+                            </div>
+                            <div class="win11-key-badges">
+                                <span class="win11-keycap">⊞</span>
+                                <span class="win11-keycap">P</span>
+                            </div>
+                        </div>
+
+                        <!-- 4 Windows 11 Project Modes -->
+                        <div class="win11-options-list">
+                            
+                            <!-- 1. PC screen only -->
+                            <div class="win11-project-item" data-mode="pc_only" id="optPcOnly">
+                                <span class="win11-active-pill"></span>
+                                <div class="win11-item-icon">
+                                    <!-- Laptop Screen Icon -->
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                        <rect x="3" y="4" width="18" height="12" rx="2"/>
+                                        <path d="M2 19h20M9 16v3M15 16v3"/>
+                                    </svg>
+                                </div>
+                                <div class="win11-item-content">
+                                    <div class="win11-item-title" data-i18n="mode_pc_only_title">PC screen only</div>
+                                    <div class="win11-item-desc" data-i18n="mode_pc_only_sub">Faqat kompyuter ekrani</div>
+                                </div>
+                            </div>
+
+                            <!-- 2. Duplicate -->
+                            <div class="win11-project-item active" data-mode="duplicate" id="optDuplicate">
+                                <span class="win11-active-pill"></span>
+                                <div class="win11-item-icon">
+                                    <!-- Two Clone Screens Icon -->
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                        <rect x="2" y="7" width="13" height="10" rx="1.5"/>
+                                        <rect x="9" y="3" width="13" height="10" rx="1.5"/>
+                                        <path d="M4 21h9"/>
+                                    </svg>
+                                </div>
+                                <div class="win11-item-content">
+                                    <div class="win11-item-title" data-i18n="mode_duplicate_title">Duplicate</div>
+                                    <div class="win11-item-desc" data-i18n="mode_duplicate_sub">Barcha oyna va videolar jonli</div>
+                                </div>
+                            </div>
+
+                            <!-- 3. Extend -->
+                            <div class="win11-project-item" data-mode="extend" id="optExtend">
+                                <span class="win11-active-pill"></span>
+                                <div class="win11-item-icon">
+                                    <!-- Extended Dual Screen Icon -->
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                        <rect x="2" y="5" width="9" height="12" rx="1.5"/>
+                                        <rect x="13" y="5" width="9" height="12" rx="1.5"/>
+                                        <path d="M4 20h5M15 20h5"/>
+                                    </svg>
+                                </div>
+                                <div class="win11-item-content">
+                                    <div class="win11-item-title" data-i18n="mode_extend_title">Extend</div>
+                                    <div class="win11-item-desc" data-i18n="mode_extend_sub">Faqat slaydning o'zi (eslatmalar yashirin)</div>
+                                </div>
+                            </div>
+
+                            <!-- Extend Sub-Option: Pick Presentation Window directly -->
+                            <div id="extendSubPanel" class="win11-extend-subpanel">
+                                <button id="btnPickSlideWindow" class="btn btn-primary" style="font-size: 0.85rem; padding: 10px 14px; width: 100%;">
+                                    <span data-i18n="btn_select_slide_window">🎯 Slayd oynasini tanlash (PowerPoint / Canva)</span>
+                                </button>
+                            </div>
+
+                            <!-- 4. Second screen only -->
+                            <div class="win11-project-item" data-mode="second_only" id="optSecondOnly">
+                                <span class="win11-active-pill"></span>
+                                <div class="win11-item-icon">
+                                    <!-- External Screen Only Icon -->
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                        <rect x="2" y="6" width="7" height="6" rx="1" stroke-dasharray="2 2" opacity="0.4"/>
+                                        <rect x="9" y="4" width="13" height="10" rx="1.5"/>
+                                        <path d="M11 18h9"/>
+                                    </svg>
+                                </div>
+                                <div class="win11-item-content">
+                                    <div class="win11-item-title" data-i18n="mode_second_only_title">Second screen only</div>
+                                    <div class="win11-item-desc" data-i18n="mode_second_only_sub">Faqat elektron doskada ko'rsatish</div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <!-- Footer Link -->
+                        <div class="win11-project-footer">
+                            <span class="win11-footer-link" data-i18n="more_display_settings">Windows Win + P bilan sinxronlashgan</span>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        function switchLang(lang) {
+            setLanguage(lang);
+            updateLangButtons();
+        }
+
+        function updateLangButtons() {
+            document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+            const activeBtn = document.getElementById(`lang_${currentLang}`);
+            if (activeBtn) activeBtn.classList.add('active');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateLangButtons();
+        });
+    </script>
+    <script src="sender.js"></script>
+</body>
+</html>

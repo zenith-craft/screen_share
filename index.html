@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartBoard Connect - Masofaviy Ekran va Doska Ulash</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="i18n.js"></script>
+</head>
+<body>
+    <!-- Language Switcher Bar -->
+    <div class="lang-switcher">
+        <button class="lang-btn" onclick="switchLang('uz')" id="lang_uz">UZ</button>
+        <button class="lang-btn" onclick="switchLang('en')" id="lang_en">EN</button>
+        <button class="lang-btn" onclick="switchLang('ru')" id="lang_ru">RU</button>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1 data-i18n="app_title">SmartBoard Connect</h1>
+            <p data-i18n="app_subtitle">Noutbukni elektron doskaga simsiz va oson ulash tizimi</p>
+            <div style="margin-top: 10px;">
+                <span class="badge badge-online" data-i18n="online_badge">🌐 Online rejimi (Istalgan internet orqali)</span>
+            </div>
+        </div>
+
+        <div class="card-grid">
+            <!-- Uzatuvchi (Noutbuk) -->
+            <div class="card">
+                <div>
+                    <div class="card-icon">💻</div>
+                    <h2 data-i18n="sender_title">Uzatuvchi</h2>
+                    <p data-i18n="sender_desc">Noutbuk yoki kompyuteringiz ekranini hamda slayd-taqdimotlarini elektron doskaga uzatish uchun kiring.</p>
+                </div>
+                <a href="sender.html" class="btn btn-primary" data-i18n="btn_enter_sender">
+                    Uzatuvchi sifatida kirish
+                </a>
+            </div>
+
+            <!-- Ko'rsatuvchi (Elektron Doska) -->
+            <div class="card">
+                <div>
+                    <div class="card-icon">🖥️</div>
+                    <h2 data-i18n="display_title">Ko'rsatuvchi</h2>
+                    <p data-i18n="display_desc">Elektron doska yoki proyektorda tasvir va taqdimotlarni qabul qilish hamda ko'rsatish uchun kiring.</p>
+                </div>
+                <a href="display.html" class="btn btn-accent" data-i18n="btn_enter_display">
+                    Ko'rsatuvchi sifatida kirish
+                </a>
+            </div>
+        </div>
+
+        <footer style="margin-top: 50px; text-align: center; color: var(--text-muted); font-size: 0.85rem;" data-i18n="footer_text">
+            SmartBoard Connect &copy; 2026. Masofaviy Ulanish Tizimi.
+        </footer>
+    </div>
+
+    <script>
+        function switchLang(lang) {
+            setLanguage(lang);
+            updateLangButtons();
+        }
+
+        function updateLangButtons() {
+            document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+            const activeBtn = document.getElementById(`lang_${currentLang}`);
+            if (activeBtn) activeBtn.classList.add('active');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateLangButtons();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartBoard Connect - Ko'rsatuvchi</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="i18n.js"></script>
+</head>
+<body style="background: #050811; justify-content: center;">
+
+    <!-- Language Switcher Bar -->
+    <div class="lang-switcher">
+        <button class="lang-btn" onclick="switchLang('uz')" id="lang_uz">UZ</button>
+        <button class="lang-btn" onclick="switchLang('en')" id="lang_en">EN</button>
+        <button class="lang-btn" onclick="switchLang('ru')" id="lang_ru">RU</button>
+    </div>
+
+    <!-- 1. Waiting for Pairing / Code Display Screen -->
+    <div id="waitingScreen" class="container" style="text-align: center;">
+        <div class="header">
+            <h1 style="font-size: 3rem;" data-i18n="display_header">Elektron Doska (Ko'rsatuvchi)</h1>
+            <p style="font-size: 1.3rem;" data-i18n="display_header_sub">Noutbukingiz brauzeridan quyidagi manzilga kiring va ulanish kodini kiriting:</p>
+        </div>
+
+        <div class="card" style="max-width: 600px; margin: 0 auto; padding: 40px;">
+            <p style="text-transform: uppercase; letter-spacing: 2px; color: var(--text-muted); font-size: 0.9rem; font-weight: bold;" data-i18n="pairing_code_label">
+                Ulanish uchun Random Parol:
+            </p>
+
+            <div class="code-box">
+                <span id="displayCode" class="code-text">------</span>
+            </div>
+
+            <p style="color: var(--text-muted); font-size: 1rem; margin-top: 10px;" data-i18n="random_notice">
+                🔑 Har safar kirilgan paytda yangi kutilmagan (random) parol yaratiladi.
+            </p>
+
+            <div style="margin-top: 30px; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                <div id="statusDot" style="width: 12px; height: 12px; border-radius: 50%; background: #f59e0b; box-shadow: 0 0 10px #f59e0b;"></div>
+                <span id="statusText" style="font-weight: 600; color: var(--text-muted);" data-i18n="waiting_laptop">Noutbuk ulanishi kutilmoqda...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Active Screen Display Container (Full Screen 1080p/4K HD Video & Wallpaper) -->
+    <div id="activeDisplay" class="display-fullscreen" style="display: none;">
+        
+        <!-- Live Ultra-HD Video Stream (Duplicate & Extend Mode) -->
+        <div id="viewStream" style="width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;">
+            <video id="remoteVideo" autoplay playsinline muted></video>
+        </div>
+
+        <!-- Presenter Background Holding Screen (Standby Mode) -->
+        <div id="viewStandby" style="width: 100%; height: 100%; display: none; background: radial-gradient(circle at 50% 50%, #1e293b 0%, #0f172a 70%, #020617 100%); align-items: center; justify-content: center; color: rgba(255, 255, 255, 0.3); text-align: center;">
+            <div>
+                <div style="font-size: 4rem; margin-bottom: 12px;">🔒</div>
+                <h2 style="font-size: 1.8rem; font-weight: 700; color: #fff; margin-bottom: 8px;">SmartBoard Connect</h2>
+                <p style="font-size: 1.1rem; color: var(--text-muted);" data-i18n="standby_display_text">SmartBoard Connect — Uzatuvchi Fon Rejimi</p>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function switchLang(lang) {
+            setLanguage(lang);
+            updateLangButtons();
+        }
+
+        function updateLangButtons() {
+            document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+            const activeBtn = document.getElementById(`lang_${currentLang}`);
+            if (activeBtn) activeBtn.classList.add('active');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateLangButtons();
+        });
+    </script>
+    <script src="display.js"></script>
+</body>
+</html>
