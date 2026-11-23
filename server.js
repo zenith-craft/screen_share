@@ -2,13 +2,26 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const os = require('os');
 
 const PORT = process.env.PORT || 3000;
-const PUBLIC_DIR = __dirname;
+const PUBLIC_DIR = path.join(__dirname, 'public');
 
-// Room storage
-// roomCode -> { displayWs, senderWs, mode, slideState }
+// Room storage: roomCode -> { displayWs, senderWs, mode, slideState }
 const rooms = new Map();
+
+// Helper: Get local Wi-Fi / LAN IP address
+function getNetworkIp() {
+    const ifaces = os.networkInterfaces();
+    for (const name in ifaces) {
+        for (const iface of ifaces[name]) {
+            if (iface.family === 'IPv4' && !iface.internal && !iface.address.startsWith('169.254')) {
+                return iface.address;
+            }
+        }
+    }
+    return 'localhost';
+}
 
 // Generate random code (6 chars: uppercase, lowercase, numbers)
 function generateRandomCode() {
@@ -20,7 +33,7 @@ function generateRandomCode() {
     return code;
 }
 
-// Simple MIME types
+// MIME types
 const MIME_TYPES = {
     '.html': 'text/html; charset=utf-8',
     '.css': 'text/css; charset=utf-8',
@@ -34,7 +47,21 @@ const MIME_TYPES = {
 
 // HTTP Server
 const server = http.createServer((req, res) => {
-    let filePath = path.join(PUBLIC_DIR, req.url === '/' ? 'index.html' : req.url);
+    // API endpoint for network info (used by display for phone pairing / QR code)
+    if (req.url === '/api/info') {
+        res.writeHead(200, {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*'
+        });
+        res.end(JSON.stringify({
+            ip: getNetworkIp(),
+            port: PORT
+        }));
+        return;
+    }
+
+    const cleanUrl = req.url.split('?')[0];
+    let filePath = path.join(PUBLIC_DIR, cleanUrl === '/' ? 'index.html' : cleanUrl);
     
     // Prevent directory traversal
     if (!filePath.startsWith(PUBLIC_DIR)) {
@@ -49,7 +76,6 @@ const server = http.createServer((req, res) => {
     fs.readFile(filePath, (err, content) => {
         if (err) {
             if (err.code === 'ENOENT') {
-                // Return index.html for unknown routes
                 fs.readFile(path.join(PUBLIC_DIR, 'index.html'), (err2, indexContent) => {
                     if (err2) {
                         res.writeHead(404);
@@ -91,24 +117,23 @@ server.on('upgrade', (req, socket, head) => {
     ];
 
     socket.write(headers.join('\r\n') + '\r\n\r\n');
-
     setupWebSocketClient(socket);
 });
 
 function setupWebSocketClient(socket) {
     socket.isAlive = true;
     socket.roomCode = null;
-    socket.role = null; // 'display' or 'sender'
+    socket.role = null;
 
     socket.on('data', (buffer) => {
         const frames = parseFrames(buffer);
         for (const frame of frames) {
-            if (frame.opcode === 0x8) { // Connection Close
+            if (frame.opcode === 0x8) {
                 handleDisconnect(socket);
                 socket.end();
-            } else if (frame.opcode === 0x9) { // Ping
-                sendFrame(socket, frame.payload, 0xA); // Pong
-            } else if (frame.opcode === 0x1 || frame.opcode === 0x2) { // Text or Binary frame
+            } else if (frame.opcode === 0x9) {
+                sendFrame(socket, frame.payload, 0xA);
+            } else if (frame.opcode === 0x1 || frame.opcode === 0x2) {
                 try {
                     const messageStr = frame.payload.toString('utf8');
                     const message = JSON.parse(messageStr);
@@ -132,7 +157,6 @@ function setupWebSocketClient(socket) {
 function handleMessage(socket, msg) {
     switch (msg.type) {
         case 'create_room': {
-            // Generate unique random code
             let code = generateRandomCode();
             while (rooms.has(code)) {
                 code = generateRandomCode();
@@ -149,7 +173,9 @@ function handleMessage(socket, msg) {
 
             sendJson(socket, {
                 type: 'room_created',
-                code: code
+                code: code,
+                networkIp: getNetworkIp(),
+                port: PORT
             });
             console.log(`[ROOM CREATED] Display opened room: ${code}`);
             break;
@@ -190,7 +216,6 @@ function handleMessage(socket, msg) {
         }
 
         case 'signal': {
-            // Relay WebRTC signaling (offer, answer, ice-candidate)
             const room = rooms.get(socket.roomCode);
             if (!room) return;
 
@@ -205,7 +230,6 @@ function handleMessage(socket, msg) {
         }
 
         case 'change_mode': {
-            // Modes: 'duplicate', 'presentation', 'blank'
             const room = rooms.get(socket.roomCode);
             if (!room) return;
 
@@ -231,7 +255,6 @@ function handleMessage(socket, msg) {
             const room = rooms.get(socket.roomCode);
             if (!room) return;
 
-            // Relay slide events: start_beginning, next, prev, goto, pdf_upload
             if (msg.action === 'pdf_upload') {
                 room.slideState.pdfData = msg.pdfData;
                 room.slideState.totalSlides = msg.totalSlides;
@@ -250,7 +273,6 @@ function handleMessage(socket, msg) {
                 room.slideState.currentSlide = msg.slideNumber;
             }
 
-            // Broadcast to display
             if (room.displayWs) {
                 sendJson(room.displayWs, {
                     type: 'slide_update',
@@ -258,7 +280,6 @@ function handleMessage(socket, msg) {
                     slideState: room.slideState
                 });
             }
-            // Sync sender UI
             if (room.senderWs) {
                 sendJson(room.senderWs, {
                     type: 'slide_update',
@@ -382,9 +403,11 @@ function parseFrames(buffer) {
     return frames;
 }
 
-server.listen(PORT, () => {
+server.listen(PORT, '0.0.0.0', () => {
+    const netIp = getNetworkIp();
     console.log(`====================================================`);
     console.log(` SmartBoard Connect server running on port ${PORT}`);
-    console.log(` Local URL: http://localhost:${PORT}`);
+    console.log(` Local URL:   http://localhost:${PORT}`);
+    console.log(` Network URL: http://${netIp}:${PORT} (Phone / Other Devices)`);
     console.log(`====================================================`);
 });
